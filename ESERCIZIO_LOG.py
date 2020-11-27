@@ -19,7 +19,7 @@ parser=argparse.ArgumentParser()
 #                     type=str, default='./data/input_data.json')
 
 parser.add_argument("-i", "--input_data", help="Complete path to the file containing data (log)",
-                    type=str, default='./ESERCIZIO LOG/isi-analisi_di_log/data/input_data_due.json')
+                    type=str, default='./data/anonymous_logs_Fondamenti di informatica_20201118-1702.json')
 
 parser.add_argument("-o", "--user_feature", help="Complete path to the file containing data output(.json)", 
                     type=str, default='./results/user_feature.json')
