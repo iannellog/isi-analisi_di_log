@@ -162,6 +162,12 @@ for u in range(len(utenti)):
          if evento == tabella_evento[u].index[e]: # se l'evento corrisponde all'evento dell'utente...
             user_features.loc[u,evento]=tabella_evento[u].values[e] #...inserisco l'informazione nel DataFrame
    
+    
+   
+#sostituisco i valori NaN con 0
+user_features.fillna(0, inplace = True)
+
+
 #Calcolo tempo di esecuzione
 elapsed = time.perf_counter_ns() - start
 print('*** elapsed ***', elapsed / 1000000000.0)
