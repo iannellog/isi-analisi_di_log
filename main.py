@@ -26,7 +26,7 @@ args=parser.parse_args()
 #Leggo lista dei log anonimizzati in formato json e memorizzo su struttura dati python
 fin=open(args.in_data,'r')
 text=fin.read()
-data1=json.loads(text)[0]
+data1=json.loads(text)
 
 df=pd.DataFrame(data1, columns=['Data/Ora','ID','UC','contesto evento','componente','evento','descrizione','origine','IP'])
 

@@ -22,5 +22,5 @@ quante volte si è verificato ciascun evento
 data primo evento
 data ultimo evento
 numero di giorni tra il primo e l'ultimo evento
-
+e altre features a piacere
 
