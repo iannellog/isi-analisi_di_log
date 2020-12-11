@@ -10,13 +10,15 @@ from os.path import splitext
 import json
 import pandas as pd
 from abc import ABC, abstractmethod
+import datetime
+
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-i", "--in_data", help="Complete path il file input_data.json",
                     type=str, default='./data/input_data.json')
 parser.add_argument("-o", "--out_data", help="Complete path il file input_data.json",
-                    type=str, default='./results/output_data.json')
+                    type=str, default='./results/output_data.xlsx')
 
 args = parser.parse_args()
 
@@ -53,6 +55,9 @@ class JSONReader(LogReader):
         fin = open(self.filename, 'r')
         text = fin.read()
         data = json.loads(text)
+        # converto le date da stringa a date
+        for log in data:
+            log[0] = datetime.datetime.strptime(log[0], '%d/%m/%Y %H:%M')
 
         df = pd.DataFrame(data, columns=[
             'Data/Ora',
@@ -82,7 +87,10 @@ class FeatureExtractor:
         pass
 
     def extract_features(self, log_list):
-        return pd.DataFrame(0, index=list(range(1)), columns=[
+        # estraggo la lista degli utenti
+        users = log_list['ID'].unique()
+        # creo il df di output
+        df_out = pd.DataFrame(0, index=users, columns=[
             'eventi_tot',
             'data_primo_ev',
             'data_ultimo_ev',
@@ -90,6 +98,30 @@ class FeatureExtractor:
             'media',
             'varianza'
         ])
+        # Numero log per utente
+        numlog_utente = log_list['ID'].value_counts()
+        df_out['eventi_tot'] = numlog_utente
+        # Data primo/ultimo evento
+        for user in users:
+            date_utente = log_list.loc[(log_list['ID'] == user)]  # riduco il df_out solo al singolo utente
+            prima = date_utente['Data/Ora'].sort_values(ascending=True).iloc[0]  # ordino le date in ordine decrescente, prendo la prima
+            ultima = date_utente['Data/Ora'].sort_values(ascending=True).iloc[len(date_utente) - 1]  # prendo l'ultima
+            df_out.loc[user, 'data_primo_ev'] = prima
+            df_out.loc[user, 'data_ultimo_ev'] = ultima
+        # calcolo giorni dal primo all'ultimo evento
+        # calcolo giorni tra primo e ultimo evento e li salvo in dist_primo_ultimo
+        dist_primo_ultimo = []
+        A = []
+        B = []
+        for date1 in df_out['data_primo_ev']:
+            A.append(date1.date())
+        for date2 in df_out['data_ultimo_ev']:
+            B.append(date2.date())
+        for i in range(len(A)):
+            dist_primo_ultimo.append(abs((A[i] - B[i]).days))
+        df_out['giorni_primo_ultimo'] = pd.Series(dist_primo_ultimo, index=users)
+
+        return df_out
 
 
 # acquisisci lista di log e mmeorizzalo in un data frame
@@ -101,7 +133,8 @@ extractor = FeatureExtractor()
 df_out = extractor.extract_features(df_logs)
 
 # salva le features calcolate
-df_out.to_json(args.out_data, orient='columns', indent=3)
+#df_out.to_json(args.out_data, orient='columns', indent=3)
+df_out.to_excel(args.out_data)
 
 
 
