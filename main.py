@@ -55,7 +55,7 @@ class JSONReader(LogReader):
         fin = open(self.filename, 'r')
         text = fin.read()
         data = json.loads(text)
-        # converto le date da stringa a date
+        # converto le date da stringa di caratteri a 'datetime'
         for log in data:
             log[0] = datetime.datetime.strptime(log[0], '%d/%m/%Y %H:%M')
 
@@ -109,7 +109,6 @@ class FeatureExtractor:
             df_out.loc[user, 'data_primo_ev'] = prima
             df_out.loc[user, 'data_ultimo_ev'] = ultima
         # calcolo giorni dal primo all'ultimo evento
-        # calcolo giorni tra primo e ultimo evento e li salvo in dist_primo_ultimo
         dist_primo_ultimo = []
         A = []
         B = []
@@ -120,8 +119,15 @@ class FeatureExtractor:
         for i in range(len(A)):
             dist_primo_ultimo.append(abs((A[i] - B[i]).days))
         df_out['giorni_primo_ultimo'] = pd.Series(dist_primo_ultimo, index=users)
+        df_temp = self.extract_event_count_per_user(log_list,users)
+        return pd.concat([df_out, df_temp], axis=1)
 
-        return df_out
+    def extract_event_count_per_user(self, log_list, users):
+        eventi = log_list['evento'].unique()
+        df_temp = pd.DataFrame(0, index=users, columns=eventi)
+        for i in range(log_list.shape[0]):
+            df_temp.loc[log_list.loc[i, 'ID'], log_list.loc[i, 'evento']] += 1
+        return df_temp
 
 
 # acquisisci lista di log e mmeorizzalo in un data frame
